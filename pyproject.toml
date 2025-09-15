@@ -1,0 +1,25 @@
+[project]
+name = "isaac-sim-cubes"
+version = "0.1.0"
+description = "cubes on isacc sim"
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+    "torch==2.7.0",                         # Required for Isaac Sim [4]
+    "torchvision==0.22.0",    
+    "isaacsim[all,extscache]==5.0.0"        # The core Isaac Sim package [8][4]
+]
+
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128" }]
+torchvision = [{ index = "pytorch-cu128" }]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.pip_extra_index_urls]
+url = "https://pypi.nvidia.com"             # This enables Isaac Sim pip packages
