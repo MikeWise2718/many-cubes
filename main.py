@@ -30,69 +30,86 @@ def add_planes(mats, sz):
 
    
 
+def add_vek(v1,v2):
+    v3 = Gf.Vec3f( v1[0]+v2[0], v1[1]+v2[1], v1[2]+v2[2] )
+    return v3
+    
 def add_rods(mats, sz):
     rodlen = 15
-    rodmarkspace = 5
-    rsz = rodlen
+    rodmarkspace = 5   
     rod_thick = 0.05
     mark_sz = rod_thick*3
-    rodname = "/rods/X_rod"
-    markclr = mats["Black"]
     
-    rodclr = mats["Blue"]
-    rodX = UsdGeom.Cube.Define(stage, rodname)
-    rodX.AddTranslateOp().Set(Gf.Vec3f( 0, 0, 0 ))
-    rodX.AddScaleOp().Set(Gf.Vec3f( rod_thick, rod_thick,  rsz ))       
-    UsdShade.MaterialBindingAPI(rodX).Bind(rodclr)
-    cur = -rodlen
-    mk = 1
-    while cur<=rodlen:
-        if cur!=0:            
-            markname = f"{rodname}_m{mk}"
-            mk += 1
-            print(markname)
-            mark = UsdGeom.Sphere.Define(stage, markname )
-            mark.AddTranslateOp().Set(Gf.Vec3f( cur, 0, 0 ))
-            mark.AddScaleOp().Set(Gf.Vec3f( mark_sz, mark_sz,  mark_sz ))
-            UsdShade.MaterialBindingAPI(mark).Bind(markclr)
-        cur += rodmarkspace     
-
     rodclr = mats["Red"]
-    rodname = "/rods/Y_rod"
-    rodY = UsdGeom.Cube.Define(stage, rodname)
-    rodY.AddTranslateOp().Set(Gf.Vec3f( 0, 0, 0 ))
-    rodY.AddScaleOp().Set(Gf.Vec3f( rsz, rod_thick,  rod_thick ))       
-    UsdShade.MaterialBindingAPI(rodY).Bind(rodclr)
-    cur = -rodlen
-    while cur<=rodlen:
-        if cur!=0:
-            markname = f"{rodname}_m{mk}"
-            mk += 1
-            print(markname)
-            mark = UsdGeom.Sphere.Define(stage, markname )
-            mark.AddTranslateOp().Set(Gf.Vec3f( 0, cur, 0 ))
-            mark.AddScaleOp().Set(Gf.Vec3f( mark_sz, mark_sz,  mark_sz ))
-            UsdShade.MaterialBindingAPI(mark).Bind(markclr)
-        cur += rodmarkspace        
+    rska = Gf.Vec3f( rodlen, rod_thick, rod_thick)
+    mpos = Gf.Vec3f( -rodlen, 0, 0 )
+    minc = Gf.Vec3f( rodmarkspace, 0, 0 )      
+    rodname = "/rods/X_rod"
     
-    rodclr = mats["Green"]
-    rodname = "/rods/Z_rod"
-    rodZ = UsdGeom.Cube.Define(stage, rodname)
-    rodZ.AddTranslateOp().Set(Gf.Vec3f( 0, 0, 0 ))
-    rodZ.AddScaleOp().Set(Gf.Vec3f( rod_thick, rsz,  rod_thick ))       
-    UsdShade.MaterialBindingAPI(rodZ).Bind(rodclr)
-    cur = -rodlen
-    while cur<=rodlen:
-        if cur!=0:
+    mcur = -rodlen
+    rod = UsdGeom.Cube.Define(stage, rodname)
+    rod.AddScaleOp().Set(rska)       
+    UsdShade.MaterialBindingAPI(rod).Bind(rodclr)
+    mk = 1
+    while mcur<=rodlen:
+        if mcur!=0:
             markname = f"{rodname}_m{mk}"
             mk += 1
             print(markname)
             mark = UsdGeom.Sphere.Define(stage, markname )
-            mark.AddTranslateOp().Set(Gf.Vec3f( 0, 0, cur ))
+            mark.AddTranslateOp().Set(mpos)
             mark.AddScaleOp().Set(Gf.Vec3f( mark_sz, mark_sz,  mark_sz ))
-            UsdShade.MaterialBindingAPI(mark).Bind(markclr)
-        cur += rodmarkspace    
+            UsdShade.MaterialBindingAPI(mark).Bind(rodclr)
+        mcur += rodmarkspace        
+        mpos = add_vek( mpos, minc )
 
+
+    rodclr = mats["Green"]
+    rska = Gf.Vec3f( rod_thick, rodlen, rod_thick)
+    mpos = Gf.Vec3f( 0, -rodlen, 0 )
+    minc = Gf.Vec3f( 0, rodmarkspace, 0 )
+    rodname = "/rods/Y_rod"
+    
+    mcur = -rodlen
+    rod = UsdGeom.Cube.Define(stage, rodname)
+    rod.AddScaleOp().Set(rska)       
+    UsdShade.MaterialBindingAPI(rod).Bind(rodclr)
+    mk = 1
+    while mcur<=rodlen:
+        if mcur!=0:
+            markname = f"{rodname}_m{mk}"
+            mk += 1
+            print(markname)
+            mark = UsdGeom.Sphere.Define(stage, markname )
+            mark.AddTranslateOp().Set(mpos)
+            mark.AddScaleOp().Set(Gf.Vec3f( mark_sz, mark_sz,  mark_sz ))
+            UsdShade.MaterialBindingAPI(mark).Bind(rodclr)
+        mcur += rodmarkspace    
+        mpos = add_vek( mpos, minc )
+
+
+    rodclr = mats["Blue"]
+    rska = Gf.Vec3f( rod_thick, rod_thick,  rodlen )
+    mpos = Gf.Vec3f( 0, 0, -rodlen )
+    minc = Gf.Vec3f( 0, 0, rodmarkspace )
+    rodname = "/rods/Z_rod"
+    
+    mcur = -rodlen
+    rod = UsdGeom.Cube.Define(stage, rodname)
+    rod.AddScaleOp().Set(rska)       
+    UsdShade.MaterialBindingAPI(rod).Bind(rodclr)
+    mk = 1
+    while mcur<=rodlen:
+        if mcur!=0:            
+            markname = f"{rodname}_m{mk}"
+            mk += 1
+            print(markname)
+            mark = UsdGeom.Sphere.Define(stage, markname )
+            mark.AddTranslateOp().Set(mpos)
+            mark.AddScaleOp().Set(Gf.Vec3f( mark_sz, mark_sz,  mark_sz ))
+            UsdShade.MaterialBindingAPI(mark).Bind(rodclr)
+        mcur += rodmarkspace
+        mpos = add_vek( mpos, minc )
 
 
 def define_environment(mats, sz):
