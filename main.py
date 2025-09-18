@@ -28,24 +28,70 @@ def add_planes(mats, sz):
     planeZX.AddScaleOp().Set(Gf.Vec3f( psz, thin_psize,  psz ))       
     UsdShade.MaterialBindingAPI(planeZX).Bind(mats["GreenTrans"])
 
+   
+
 def add_rods(mats, sz):
-    rsz = 15*sz
-    rod_thick = 0.1*sz
-    rodX = UsdGeom.Cube.Define(stage, "/X_rod")
+    rodlen = 15
+    rodmarkspace = 5
+    rsz = rodlen
+    rod_thick = 0.05
+    mark_sz = rod_thick*3
+    rodname = "/rods/X_rod"
+    markclr = mats["Black"]
+    
+    rodclr = mats["Blue"]
+    rodX = UsdGeom.Cube.Define(stage, rodname)
     rodX.AddTranslateOp().Set(Gf.Vec3f( 0, 0, 0 ))
     rodX.AddScaleOp().Set(Gf.Vec3f( rod_thick, rod_thick,  rsz ))       
-    UsdShade.MaterialBindingAPI(rodX).Bind(mats["BlueTrans"])
+    UsdShade.MaterialBindingAPI(rodX).Bind(rodclr)
+    cur = -rodlen
+    mk = 1
+    while cur<=rodlen:
+        if cur!=0:            
+            markname = f"{rodname}_m{mk}"
+            mk += 1
+            print(markname)
+            mark = UsdGeom.Sphere.Define(stage, markname )
+            mark.AddTranslateOp().Set(Gf.Vec3f( cur, 0, 0 ))
+            mark.AddScaleOp().Set(Gf.Vec3f( mark_sz, mark_sz,  mark_sz ))
+            UsdShade.MaterialBindingAPI(mark).Bind(markclr)
+        cur += rodmarkspace     
 
-    rodY = UsdGeom.Cube.Define(stage, "/Y_rod")
+    rodclr = mats["Red"]
+    rodname = "/rods/Y_rod"
+    rodY = UsdGeom.Cube.Define(stage, rodname)
     rodY.AddTranslateOp().Set(Gf.Vec3f( 0, 0, 0 ))
     rodY.AddScaleOp().Set(Gf.Vec3f( rsz, rod_thick,  rod_thick ))       
-    UsdShade.MaterialBindingAPI(rodY).Bind(mats["RedTrans"])
+    UsdShade.MaterialBindingAPI(rodY).Bind(rodclr)
+    cur = -rodlen
+    while cur<=rodlen:
+        if cur!=0:
+            markname = f"{rodname}_m{mk}"
+            mk += 1
+            print(markname)
+            mark = UsdGeom.Sphere.Define(stage, markname )
+            mark.AddTranslateOp().Set(Gf.Vec3f( 0, cur, 0 ))
+            mark.AddScaleOp().Set(Gf.Vec3f( mark_sz, mark_sz,  mark_sz ))
+            UsdShade.MaterialBindingAPI(mark).Bind(markclr)
+        cur += rodmarkspace        
     
-    rodZ = UsdGeom.Cube.Define(stage, "/Z_rod")
+    rodclr = mats["Green"]
+    rodname = "/rods/Z_rod"
+    rodZ = UsdGeom.Cube.Define(stage, rodname)
     rodZ.AddTranslateOp().Set(Gf.Vec3f( 0, 0, 0 ))
     rodZ.AddScaleOp().Set(Gf.Vec3f( rod_thick, rsz,  rod_thick ))       
-    UsdShade.MaterialBindingAPI(rodZ).Bind(mats["GreenTrans"])
-
+    UsdShade.MaterialBindingAPI(rodZ).Bind(rodclr)
+    cur = -rodlen
+    while cur<=rodlen:
+        if cur!=0:
+            markname = f"{rodname}_m{mk}"
+            mk += 1
+            print(markname)
+            mark = UsdGeom.Sphere.Define(stage, markname )
+            mark.AddTranslateOp().Set(Gf.Vec3f( 0, 0, cur ))
+            mark.AddScaleOp().Set(Gf.Vec3f( mark_sz, mark_sz,  mark_sz ))
+            UsdShade.MaterialBindingAPI(mark).Bind(markclr)
+        cur += rodmarkspace    
 
 
 
@@ -73,20 +119,22 @@ def define_materials():
        ((1.0, 0.0, 0.0), "Red"),
        ((0.0, 1.0, 0.0), "Green"),
        ((0.0, 0.0, 1.0), "Blue"),
-       ((1.0, 0.0, 1.0), "Magenta"),
+       ((1.0, 1.0, 0.0), "Magenta"),
        ((0.0, 1.0, 1.0), "Cyan"),
-       ((1.0, 1.0, 0.0), "Yellow"),
+       ((1.0, 0.0, 1.0), "Yellow"),
     ]
     mat_infos_d = {
+       "White":{"dclr":(1.1, 1.1, 1.1), "ruff": 0.2, "metal":0.0,"opaque":1.0},
+       "Black":{"dclr":(0.0, 0.0, 0.0), "ruff": 0.2, "metal":0.0,"opaque":1.0},
        "Red":{"dclr":(1.1, 0.0, 0.0), "ruff": 0.2, "metal":0.0,"opaque":1.0},
        "Green":{"dclr":(0.0, 1.1, 0.0), "ruff": 0.2, "metal":0.0,"opaque":1.0},
        "Blue":{"dclr":(0.0, 0.0, 1.1), "ruff": 0.2, "metal":0.0,"opaque":1.0},
+       "Magenta":{"dclr":(1.0, 0.0, 1.0), "ruff": 0.2, "metal":0.0,"opaque":1.0},
+       "Cyan":{"dclr":(0.0, 1.0, 1.0), "ruff": 0.2, "metal":0.0,"opaque":1.0},
+       "Yellow":{"dclr":(1.0, 1.0, 0.0), "ruff": 0.2, "metal":0.0,"opaque":1.0},
        "RedTrans":{"dclr":(1.1, 0.0, 0.0), "ruff": 0.2, "metal":0.0,"opaque":0.3},
        "GreenTrans":{"dclr":(0.0, 1.1, 0.0), "ruff": 0.2, "metal":0.0,"opaque":0.3},
        "BlueTrans":{"dclr":(0.0, 0.0, 1.1), "ruff": 0.2, "metal":0.0,"opaque":0.3},
-       "Magenta":{"dclr":(1.0, 0.0, 1.0), "ruff": 0.2, "metal":0.0,"opaque":1.0},
-       "Cyan":{"dclr":(0.0, 1.0, 1.0), "ruff": 0.2, "metal":0.0,"opaque":1.0},
-       "Yellow":{"dclr":(1.0, 0.0, 1.0), "ruff": 0.2, "metal":0.0,"opaque":1.0},
        "Blood":{"dclr":(1.0, 0.0, 0.0), "ruff": 0.2, "metal":0.0,"opaque":0.2},
        "Vessel":{"dclr":(0.1, 0.1, 1.1), "ruff": 0.2, "metal":0.0,"opaque":0.9},
        "Stuff":{"dclr":(0.5, 0.5, 0.5), "ruff": 0.2, "metal":0.0,"opaque":0.2},
@@ -172,7 +220,7 @@ def define_cube_of_cubes(mats, nx,ny,nz, sz):
 
 def define_stuff():
 
-    pop_reduce_fak = 0.33
+    pop_reduce_fak = 1
     nx = round(pop_reduce_fak*20)
     ny = round(pop_reduce_fak*10)
     nz = round(pop_reduce_fak*10)
