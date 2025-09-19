@@ -1,4 +1,5 @@
 import time
+import math
 
 from isaacsim import SimulationApp
 # import isaacsim.core.utils.prims as prim_utils
@@ -10,8 +11,8 @@ stage = omni.usd.get_context().get_stage()
 
 from pxr import UsdGeom, Gf, UsdLux, Sdf, UsdShade
 
-def add_planes(mats, sz):
-    psz = 15*sz
+def add_planes(mats):
+    psz = 15
     thin_psize = 0.01*psz
     planeXY = UsdGeom.Cube.Define(stage, "/XY_plane")
     planeXY.AddTranslateOp().Set(Gf.Vec3f( 0, 0, 0 ))
@@ -34,11 +35,12 @@ def add_vek(v1,v2):
     v3 = Gf.Vec3f( v1[0]+v2[0], v1[1]+v2[1], v1[2]+v2[2] )
     return v3
     
-def add_rods(mats, sz):
+def add_rods(mats):
     rodlen = 15
     rodmarkspace = 5   
     rod_thick = 0.05
     mark_sz = rod_thick*3
+    mkclr = mats["Black"]
     
     rodclr = mats["Red"]
     rska = Gf.Vec3f( rodlen, rod_thick, rod_thick)
@@ -55,11 +57,10 @@ def add_rods(mats, sz):
         if mcur!=0:
             markname = f"{rodname}_m{mk}"
             mk += 1
-            print(markname)
             mark = UsdGeom.Sphere.Define(stage, markname )
             mark.AddTranslateOp().Set(mpos)
             mark.AddScaleOp().Set(Gf.Vec3f( mark_sz, mark_sz,  mark_sz ))
-            UsdShade.MaterialBindingAPI(mark).Bind(rodclr)
+            UsdShade.MaterialBindingAPI(mark).Bind(mkclr)
         mcur += rodmarkspace        
         mpos = add_vek( mpos, minc )
 
@@ -79,11 +80,10 @@ def add_rods(mats, sz):
         if mcur!=0:
             markname = f"{rodname}_m{mk}"
             mk += 1
-            print(markname)
             mark = UsdGeom.Sphere.Define(stage, markname )
             mark.AddTranslateOp().Set(mpos)
             mark.AddScaleOp().Set(Gf.Vec3f( mark_sz, mark_sz,  mark_sz ))
-            UsdShade.MaterialBindingAPI(mark).Bind(rodclr)
+            UsdShade.MaterialBindingAPI(mark).Bind(mkclr)
         mcur += rodmarkspace    
         mpos = add_vek( mpos, minc )
 
@@ -103,16 +103,15 @@ def add_rods(mats, sz):
         if mcur!=0:            
             markname = f"{rodname}_m{mk}"
             mk += 1
-            print(markname)
             mark = UsdGeom.Sphere.Define(stage, markname )
             mark.AddTranslateOp().Set(mpos)
             mark.AddScaleOp().Set(Gf.Vec3f( mark_sz, mark_sz,  mark_sz ))
-            UsdShade.MaterialBindingAPI(mark).Bind(rodclr)
+            UsdShade.MaterialBindingAPI(mark).Bind(mkclr)
         mcur += rodmarkspace
         mpos = add_vek( mpos, minc )
 
 
-def define_environment(mats, sz):
+def define_environment(mats):
 
     # Z-up more common in Engineering and Medical, Y-up in Gaming and modelling
     UsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.z) 
@@ -125,8 +124,8 @@ def define_environment(mats, sz):
     sphere.AddTranslateOp().Set(Gf.Vec3f( 0, 0, 0 ))
     sphere.AddScaleOp().Set(Gf.Vec3f( 1, 1,  1 ))    
     
-    add_planes(mats, sz)
-    add_rods(mats, sz)
+    # add_planes(mats)
+    add_rods(mats)
     
 
 
@@ -201,55 +200,73 @@ def define_cubes(mats):
    
         UsdShade.MaterialBindingAPI(cube).Bind(mat)
         
-def define_cube_of_cubes(mats, nx,ny,nz, sz):
+def define_cube_of_cubes(mats, nx,ny,nz, need_len, irad, orad):
     mats_list = list(mats.values())
     lnmat = len(mats_list)
-    i = 0
     n = nx*ny*nz
-    cube_gap = 0.2
-    cube_size = 2
-    inioff = sz*cube_size/2 # cubes are centered a
-    dd = sz*(cube_size + cube_gap)
-    tdx = sz*(nx*cube_size + (nx-1)*cube_gap) 
-    tdy = sz*(ny*cube_size + (ny-1)*cube_gap) 
-    tdz = sz*(nz*cube_size + (nz-1)*cube_gap) 
+    cc_gap = 0.1
+    cc_size = 2
+    cc_inioff = cc_size/2 # cube centers are coordinate orgin centered 
+    cc_dd = (cc_size + cc_gap)
+    cc_tdx = (nx*cc_size + (nx-1)*cc_gap) 
+    cc_tdy = (ny*cc_size + (ny-1)*cc_gap) 
+    cc_tdz = (nz*cc_size + (nz-1)*cc_gap) 
+    
+    sz = need_len / cc_tdx
+    
+    inioff = sz*cc_inioff
+    dd = sz*cc_dd
+    tdx = sz*cc_tdx
+    tdy = sz*cc_tdy
+    tdz = sz*cc_tdz
     shiftx = tdx/2 - inioff
     shifty = tdy/2 - inioff
     shiftz = tdz/2 - inioff
     # shfitx = shifty = shiftz = 0
     print(f"Total cube_of_cube size x:{tdx:.2f} y:{tdy:.2f} z:{tdz:.2f}") 
-    for x in range(nx):
-        for y in range(ny):
-            for z in range(nz):
-    
-                usdpath = Sdf.Path(f"/World/Coc/Cube_{x}_{y}_{z}")
-                
-                if i % 200 == 0:
-                    print(f"Defining {usdpath} - {i} of {n}")
-           
-                cube = UsdGeom.Cube.Define(stage, usdpath)
-                cube.AddTranslateOp().Set(Gf.Vec3f( x*dd - shiftx, y*dd - shifty,  z*dd - shiftz ))
-                cube.AddScaleOp().Set(Gf.Vec3f( sz, sz,  sz ))
-                mat = mats_list[i % lnmat]
-   
-                UsdShade.MaterialBindingAPI(cube).Bind(mat)
-                i += 1
+    ic = 0
+    ig = 0
+    for ix in range(nx):
+        x = ix*dd - shiftx
+        for iy in range(ny):
+            y = iy*dd - shifty
+            for iz in range(nz):          
+                z = iz*dd - shiftz
+                distyz = math.sqrt(y*y + z*z)
+                if distyz<irad:
+                     imat = 0
+                elif distyz<orad:
+                     imat = 1
+                else:
+                     imat = 2  
+                mat = mats_list[imat]   
+                if imat<2:             
+                    usdpath = Sdf.Path(f"/World/Coc/Cube_{ix}_{iy}_{iz}")                
+                    if ic % 200 == 0:
+                        print(f"Defining cube:{ic} {usdpath} - {ig} of {n}")
+                    cube = UsdGeom.Cube.Define(stage, usdpath)
+                    cube.AddTranslateOp().Set(Gf.Vec3f( x, y, z ))
+                    cube.AddScaleOp().Set(Gf.Vec3f( sz, sz,  sz ))
+                    UsdShade.MaterialBindingAPI(cube).Bind(mat)
+                    ic += 1
+                ig += 1
 
 def define_stuff():
 
-    pop_reduce_fak = 1
-    nx = round(pop_reduce_fak*20)
-    ny = round(pop_reduce_fak*10)
-    nz = round(pop_reduce_fak*10)
-    sz = 0.1 / pop_reduce_fak
+    pop_adj_fak = 6
+    nx = round(pop_adj_fak*20)
+    ny = round(pop_adj_fak*10)
+    nz = round(pop_adj_fak*10)
 
     mats = define_materials()
-    define_environment(mats, sz)
+    define_environment(mats)
     fmats_rgb = filter_mats(mats,["Red","Green","Blue"])
     fmats_bvs = filter_mats(mats,["Blood","Vessel","Stuff"])
 
-    # sz = 1
-    define_cube_of_cubes(fmats_bvs, nx,ny,nz, sz)
+    need_len = 20
+    irad = 2
+    orad = 2.5
+    define_cube_of_cubes(fmats_bvs, nx,ny,nz, need_len, irad, orad)
 
 
 def main():
